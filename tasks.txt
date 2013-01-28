@@ -1,0 +1,4 @@
+1) rhs calculation:
+	a) u coefficient (C): [NxN],  diffusion coefficients (a): [1x1]. (DONE)
+	b) u coefficient (C): [NxN],  diffusion coefficients (a): [NxN]. (DONE?????)
+	b) u coefficient (C): [1x1],  diffusion coefficients (a): [1x1]. (in the near future)
