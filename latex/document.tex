@@ -46,9 +46,10 @@ u_t + A_1u + A_2u = f. \label{eq:heatA}
 Replacing the operators $A_1$ and $A_2$ (\ref{eq:heatA}) respectively by their spatial approximations
 $A_{1h}$ and $A_{2h}$, the proposed Douglas-Peaseman-Rachford method is:
 \begin{eqnarray}
-(I+\frac{k}{2}A_{1h})u^* = (I-\frac{k}{2}A_{2h})u^n + \frac{k}{2}f^{n+1/2}, \quad \text{(x-sweep)} \\
+(I+\frac{k}{2}A_{1h})u^* = (I-\frac{k}{2}A_{2h})u^n + \frac{k}{2}f^{n+1/2}, \quad \text{(x-sweep)} 
+\label{equ:x-sweep}\\
 (I+\frac{k}{2}A_{2h})u^{n+1} = (I-\frac{k}{2}A_{1h})u^* + \frac{k}{2}f^{n+1/2}, \quad \text{(y-sweep)}
-\end{eqnarray} 
+\end{eqnarray} \label{equ:y-sweep}
 
  
 \subsection{Another subtitle}
