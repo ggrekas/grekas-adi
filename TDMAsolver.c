@@ -16,7 +16,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
     
     if( 0 == nlhs || nrhs < 5)
         mexErrMsgTxt("not enough input arguments");
-	 //mexPrintf("Hello World!, nlhs=%d\n", nlhs);
     plhs[0] =prhs[0];
     
     U= mxGetPr(plhs[0]);
@@ -34,7 +33,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
         ismatrix=1;
     else
         ismatrix=0;
-    
     
     for(i =0; i <N; ++i){
             init_param( d, diag+i*N, N);
@@ -68,15 +66,16 @@ void solveMatrix (int n, const double *a, double *B, const double *c, double *V,
     * v - right part
     * x - the answer
     */
-	double m;
-	int i, prev_i;
+	int i;
+    double m;
+	
     
     for (i = 1; i < n; i++){  
         m = a[i]/B[i-1];
         B[i] = B[i] - m * c[i - 1];
         V[i] = V[i] - m*V[i-1];
      }
-    X[(n-1)] = V[ (n-1)]/B[ (n-1)];
+    X[n-1] = V[n-1]/ B[n-1];
  
 	for (i = n - 2; i >= 0; i--){  
 		X[i] = (V[i] - c[i] *X[i+1]) / B[i];

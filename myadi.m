@@ -24,11 +24,13 @@ N= size(u,1);
 h= 1/(N-1);
 rhs= zeros(size(u));%
 
+
 h2=h*h;
 diag1=  (1  + 0.25*h_t*C) - h_t*a/h2;
 diag2=  (1 - 0.25*h_t*C) + h_t*a/h2;
 f= 0.5*h_t*f;
 
+k= h_t;
 if( isscalar(a) )
     y_sub_diagonal_x_sweep= 0.5*k/h2 * a;
     y_hyp_diagonal_x_sweep= 0.5*k/h2 * a;
@@ -48,8 +50,8 @@ end
 
 u= x_sweep(u, y_sub_diagonal_x_sweep, diag1, y_hyp_diagonal_x_sweep,...
            x_sub_diagonal_x_sweep, diag2, x_hyp_diagonal_x_sweep, f, rhs);
-u= x_sweep(u', -x_sub_diagonal_x_sweep', diag1', -x_hyp_diagonal_x_sweep',...
-           -y_sub_diagonal_x_sweep', diag2', -y_hyp_diagonal_x_sweep', f', rhs);
+ u= x_sweep(u', -x_sub_diagonal_x_sweep', diag1', -x_hyp_diagonal_x_sweep',...
+           -y_sub_diagonal_x_sweep', diag2', -y_hyp_diagonal_x_sweep', f', rhs)';
 
 return;
 
@@ -60,15 +62,19 @@ N= size(u,1);
 
 rhs =calculate_rhs(rhs, u, y_sub_diag, diag1, y_hyp_diag, f);
 
+
 if ( isscalar(x_sub_diag) )
-    hyp_diag= zeros(N,1); sub_diag= zeros(N,1);
-    sub_diag(1:N-2)= x_sub_diag;
-    sub_diag(N-1)= 2*x_sub_diag;
-    hyp_diag(1)= 2*x_hyp_diag;
-    hyp_diag(2:N)= x_hyp_diag;
+    sub_diag= zeros(N,1);
+    sub_diag(1:N-1)= x_sub_diag;
+    sub_diag(N)= 2*x_sub_diag;
     
-    u=TDMAsolver(u, sub_diag, diag2, hyp_diag, rhs);
+    hyp_diag= zeros(N,1); 
+    hyp_diag(1)= 2*x_hyp_diag;
+    hyp_diag(2:N-1)= x_hyp_diag;
+    
+       u=TDMAsolver(u, sub_diag, diag2, hyp_diag, rhs);
 else
     u=TDMAsolver(u, x_sub_diag, diag2, x_hyp_diag, rhs);
 end
+
 return;

@@ -45,8 +45,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
                 boundaryEnd_scalar_diffusion(u, diag, f, *sub_diag, N, N-1, rhs);
                 for(i =1; i <N-1; ++i)
                     rhs_calc_scalar_diffusion(u, diag, f, *sub_diag, N, i, rhs);
-            
-                mexPrintf("is scalarrrrrrr %d, %f, %f\n", N, *sub_diag, *hyp_diag);
             }
             #if 0
             else{/*diag is a scalar*/
