@@ -21,11 +21,10 @@ void rhs_calc(const double *u, const double *sub_d, const double *d,
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	double *rhs, *u, *sub_diag, *diag, *hyp_diag, *f, *b;
-    int N, i; /*can be replaced with mxGetM*/
+    int N, i;
     
     if( 0 == nlhs || nrhs < 5)
         mexErrMsgTxt("not enough input arguments");
-	 //mexPrintf("Hello World!, nlhs=%d\n", nlhs);
     plhs[0]= prhs[0];
     
     rhs= mxGetPr(plhs[0]);
@@ -34,11 +33,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
     diag= mxGetPr(prhs[3]);
     hyp_diag= mxGetPr(prhs[4]);
     f= mxGetPr(prhs[5]);
-    b= mxGetPr(prhs[6]);
     
     N= mxGetM(prhs[1]) ;
     
-//     if( mxGetM(prhs[2])> 1){
+/*     if( mxGetM(prhs[2])> 1){*/
          if( 1==mxGetM(prhs[2]) ){/*then sub_diag and hyp_diag are scalar values*/
             if ( 1!=mxGetM(prhs[4]) )
                 mexErrMsgTxt("sub-diagonal and hyp-diagonal must be of the same size");
@@ -46,20 +44,24 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
                 boundaryStart_scalar_diffusion(u, diag, f, *sub_diag, N, 0, rhs);
                 boundaryEnd_scalar_diffusion(u, diag, f, *sub_diag, N, N-1, rhs);
                 for(i =1; i <N-1; ++i)
-                 rhs_calc_scalar_diffusion(u, diag, f, *sub_diag, N, i, rhs);
+                    rhs_calc_scalar_diffusion(u, diag, f, *sub_diag, N, i, rhs);
+            
+                mexPrintf("is scalarrrrrrr %d, %f, %f\n", N, *sub_diag, *hyp_diag);
             }
+            #if 0
             else{/*diag is a scalar*/
                 if( 1!=mxGetM(prhs[3]) )
                     mexErrMsgTxt("the coefficient of u (C) must be scalar");
                 /*fix it................*/
             }
+			#endif
          }
          else{ //case of a:[NxN] and C:[NxN].....
             boundaryStart(u, diag, hyp_diag, f, N, 0, rhs);
             boundaryEnd(u, sub_diag, diag, f, N, N-1, rhs);
             for(i =1; i <N-1; ++i)
                 rhs_calc(u, sub_diag, diag, hyp_diag, f, N, i, rhs);     
-         }    
+         }
     return;   
 }
 
@@ -68,6 +70,7 @@ void boundaryStart_scalar_diffusion(const double *u, const  double * d, const do
     int i;
     for(i=0; i<N; ++i)
         rhs[i+ j*N]= 2*b*u[ i+(j+1)*N ] + d[i+j*N]*u[i+j*N]+f[i+j*N];
+      
     return;
 }
 
@@ -87,6 +90,7 @@ void rhs_calc_scalar_diffusion(const double *u, const  double * d, const double 
     for(i=0; i<N; ++i)
         rhs[i + j*N]= b*u[ i+(j-1)*N ]+ b*u[ i+(j+1)*N ] +
                 d[i+j*N]*u[i+j*N]+f[i+j*N];
+	return;
 }
 
 
@@ -96,9 +100,7 @@ void boundaryStart(const double *u, const double *d,
     int i;
     for(i=0; i<N; ++i)
         rhs[i+ j*N]= 2*hyp_d[i+j*N]*u[ i+(j+1)*N ] + d[i+j*N]*u[i+j*N]+f[i+j*N];
-    return;
-    
- return;   
+	return;   
 }
 void boundaryEnd(const double *u, const double *sub_d, const double *d,
          const double *f, int N, int j, double *rhs){
@@ -106,7 +108,6 @@ void boundaryEnd(const double *u, const double *sub_d, const double *d,
     
     for(i=0; i<N; ++i)
         rhs[i + j*N]= 2*sub_d[i+j*N]*u[ i+(j-1)*N ] + d[i+j*N]*u[i+j*N]+f[i+j*N];
-    return;
     return;
 }
 void rhs_calc(const double *u, const double *sub_d, const double *d,
