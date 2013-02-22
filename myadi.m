@@ -50,8 +50,8 @@ end
 
 u= x_sweep(u, y_sub_diagonal_x_sweep, diag1, y_hyp_diagonal_x_sweep,...
            x_sub_diagonal_x_sweep, diag2, x_hyp_diagonal_x_sweep, f, rhs);
- u= x_sweep(u', -x_sub_diagonal_x_sweep', diag1', -x_hyp_diagonal_x_sweep',...
-           -y_sub_diagonal_x_sweep', diag2', -y_hyp_diagonal_x_sweep', f', rhs)';
+ u= x_sweep(u.', -x_sub_diagonal_x_sweep.', diag1.', -x_hyp_diagonal_x_sweep.',...
+           -y_sub_diagonal_x_sweep.', diag2.', -y_hyp_diagonal_x_sweep.', f.', rhs).';
 
 return;
 
@@ -74,6 +74,9 @@ if ( isscalar(x_sub_diag) )
     
        u=TDMAsolver(u, sub_diag, diag2, hyp_diag, rhs);
 else
+	x_sub_diag(N,:) = 2*x_sub_diag(N,:);
+    x_hyp_diag(1,:) = 2*x_hyp_diag(1,:);
+
     u=TDMAsolver(u, x_sub_diag, diag2, x_hyp_diag, rhs);
 end
 
