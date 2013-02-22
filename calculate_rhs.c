@@ -54,7 +54,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
             }
 			#endif
          }
-         else{ //case of a:[NxN] and C:[NxN].....
+         else{ /*case of a:[NxN] and C:[NxN].....*/
             boundaryStart(u, diag, hyp_diag, f, N, 0, rhs);
             boundaryEnd(u, sub_diag, diag, f, N, N-1, rhs);
             for(i =1; i <N-1; ++i)
