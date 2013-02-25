@@ -16,6 +16,7 @@
 % Output Arguments:
 %	u:	[NxN]: the function u(x,y,n+1)
 %
+% Author: Giorgos Grekas (grekas.g@gmail.com)
 
 function u= myadi(u, a, C, f, h_t)
 
