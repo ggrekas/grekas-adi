@@ -38,12 +38,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
             init_param( d, diag+i*N, N);
             init_param( rhs, V+i*N, N);      
             solveMatrix(N, sub_diag+i*N*ismatrix, d, hyp_diag+i*N*ismatrix, rhs, U +i*N);
-       
     }
     mxFree(d);
     mxFree(rhs);
     
-    return;   
+    return;
 }
 
 void init_param(double* dest, const double* source, int N){
