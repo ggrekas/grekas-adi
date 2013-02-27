@@ -31,7 +31,6 @@ diag1=  (1  + 0.25*h_t*C) - h_t*a/h2;
 diag2=  (1 - 0.25*h_t*C) + h_t*a/h2;
 f= 0.5*h_t*f;
 
-we = werw
 if( isscalar(a) )
     y_sub_diagonal_x_sweep= 0.5*h_t/h2 * a;
     y_hyp_diagonal_x_sweep= 0.5*h_t/h2 * a;
