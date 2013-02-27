@@ -31,22 +31,22 @@ diag1=  (1  + 0.25*h_t*C) - h_t*a/h2;
 diag2=  (1 - 0.25*h_t*C) + h_t*a/h2;
 f= 0.5*h_t*f;
 
-k= h_t;
+we = werw
 if( isscalar(a) )
-    y_sub_diagonal_x_sweep= 0.5*k/h2 * a;
-    y_hyp_diagonal_x_sweep= 0.5*k/h2 * a;
-    x_sub_diagonal_x_sweep= -0.5*k/h2 *a;
-    x_hyp_diagonal_x_sweep= -0.5*k/h2 *a;
+    y_sub_diagonal_x_sweep= 0.5*h_t/h2 * a;
+    y_hyp_diagonal_x_sweep= 0.5*h_t/h2 * a;
+    x_sub_diagonal_x_sweep= -0.5*h_t/h2 *a;
+    x_hyp_diagonal_x_sweep= -0.5*h_t/h2 *a;
 else
     a_derivative_y= zeros( size(a) );
     a_derivative_x= zeros( size(a) );
     a_derivative_y(:,2:end-1)= 0.25*( a(:,3:end) - a(:,1:end-2) );
     a_derivative_x(2:end-1,:)= 0.25*( a(3:end,:) - a(1:end-2,:) );
-    
-    y_sub_diagonal_x_sweep= 0.5*k/h2 *( a - a_derivative_y );
-    y_hyp_diagonal_x_sweep= 0.5*k/h2 *( a + a_derivative_y );
-    x_sub_diagonal_x_sweep= -0.5*k/h2 *( a +a_derivative_x );
-    x_hyp_diagonal_x_sweep= -0.5*k/h2 *( a -a_derivative_x );
+%     
+    y_sub_diagonal_x_sweep= 0.5*h_t/h2 *( a - a_derivative_y );
+    y_hyp_diagonal_x_sweep= 0.5*h_t/h2 *( a + a_derivative_y );
+    x_sub_diagonal_x_sweep= -0.5*h_t/h2 *( a +a_derivative_x );
+    x_hyp_diagonal_x_sweep= -0.5*h_t/h2 *( a -a_derivative_x );
 end
 
 u= x_sweep(u, y_sub_diagonal_x_sweep, diag1, y_hyp_diagonal_x_sweep,...
@@ -76,7 +76,7 @@ if ( isscalar(x_sub_diag) )
        u=TDMAsolver(u, sub_diag, diag2, hyp_diag, rhs);
 else
 	x_sub_diag(N,:) = 2*x_sub_diag(N,:);
-    x_hyp_diag(1,:) = 2*x_hyp_diag(1,:);
+   x_hyp_diag(1,:) = 2*x_hyp_diag(1,:);
 
     u=TDMAsolver(u, x_sub_diag, diag2, x_hyp_diag, rhs);
 end
