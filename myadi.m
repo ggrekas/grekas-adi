@@ -80,12 +80,14 @@ if ( isscalar(x_sub_diag) )
    hyp_diag= zeros(N,1);
    hyp_diag(1)= 2*x_hyp_diag;
    hyp_diag(2:N-1)= x_hyp_diag;
-   
-   u=TDMAsolver(u, sub_diag, diag2, hyp_diag, rhs);
+
+   u=TDMAsolver(u, x_sub_diag, diag2, x_hyp_diag, rhs);
+%    u=TDMAsolver_par(u, sub_diag, diag2, hyp_diag, rhs);
 else
    x_sub_diag(N,:) = x_sub_diag(N,:) + x_hyp_diag(N,:);
    x_hyp_diag(1,:) = x_sub_diag(1,:) + x_hyp_diag(1,:);
-   u=TDMAsolver(u, x_sub_diag, diag2, x_hyp_diag, rhs);
+    u=TDMAsolver(u, x_sub_diag, diag2, x_hyp_diag, rhs);
+%    u=TDMAsolver_par(u, x_sub_diag, diag2, x_hyp_diag, rhs);
 end
 
 return;
