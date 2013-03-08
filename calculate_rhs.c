@@ -97,7 +97,7 @@ void boundaryStart(const double *u, const double *sub_d, const double *d,
         const double *hyp_d, const double *f, int N, int j, double *rhs){
     int i;
     for(i=0; i<N; ++i)
-        rhs[i+ j*N]= sub_d[i+j*N]*u[ i+(j+1)*N ] + hyp_d[i+j*N]*u[ i+(j+1)*N ] + d[i+j*N]*u[i+j*N]+f[i+j*N];
+        rhs[i+ j*N]= (sub_d[i+j*N] + hyp_d[i+j*N])*u[ i+(j+1)*N ] + d[i+j*N]*u[i+j*N]+f[i+j*N];
 	return;   
 }
 void boundaryEnd(const double *u, const double *sub_d, const double *d,
@@ -105,7 +105,7 @@ void boundaryEnd(const double *u, const double *sub_d, const double *d,
     int i;
     
     for(i=0; i<N; ++i)
-        rhs[i + j*N]= hyp_d[i+j*N]*u[ i+(j-1)*N ] + sub_d[i+j*N]*u[ i+(j-1)*N ] + d[i+j*N]*u[i+j*N]+f[i+j*N];
+        rhs[i + j*N]= (hyp_d[i+j*N]+sub_d[i+j*N])*u[ i+(j-1)*N ] + d[i+j*N]*u[i+j*N]+f[i+j*N];
     return;
 }
 void rhs_calc(const double *u, const double *sub_d, const double *d,
