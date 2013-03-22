@@ -86,7 +86,7 @@ if ( isscalar(x_sub_diag) )
 else
    x_sub_diag(N,:) = x_sub_diag(N,:) + x_hyp_diag(N,:);
    x_hyp_diag(1,:) = x_sub_diag(1,:) + x_hyp_diag(1,:);
-    u=TDMAsolver(u, x_sub_diag, diag2, x_hyp_diag, rhs);
+   u=TDMAsolver(u, x_sub_diag, diag2, x_hyp_diag, rhs);
 %    u=TDMAsolver_par(u, x_sub_diag, diag2, x_hyp_diag, rhs);
 end
 
