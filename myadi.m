@@ -1,18 +1,23 @@
 % Alternative Direction Implicit (ADI) method implementation for solving
 % parabolic partial differential equations, with Neumann boundary
 % conditions:
-% u_t = a*(u_xx + u_yy) + c*u + f
-%
-% function myadi(u, a, c, f, h_t)
-%
+% u_t = \Nabla(a* \Nabla(u) )+ c*u + f 
+%          or
+% u_t = \Nabla(a* \Nabla(u) )+ Cg*\Nabla[u \Nabla(g)] + 
+%     +   Cphi*\Nabla[u \Nabla(phi)]c*u + f 
+% function myadi(u, a, c, f, h_t, Cg, g, Cphi, phi)
 %
 %
 % Input Arguments:
 %	u:      [NxN]: the input function. u(x,y,n)
 %	a:  	[1x1] or [NxN]: the diffusion coefficient.
 %	C:  	[NxN]. c(x,y,n+1/2)
-%	f: [NxN]: f(x,y,n+1/2):=0.5*[ f(x,y,n)+f(x,y,n+1) ]
-%
+%	f:    [NxN]: f(x,y,n+1/2):=0.5*[ f(x,y,n)+f(x,y,n+1) ]
+%	Cg:  	[1x1] or [NxN]: Cg(x,y,n+1/2)
+%	g:  	[NxN]: g(x,y,n+1/2)
+%	Cphi: [1x1] or [NxN]: Cphi(x,y,n+1/2)
+%	phi:  [NxN]: phi(x,y,n+1/2)
+%  h_t:  [1x1]: time step.
 % Output Arguments:
 %	u:	[NxN]: the function u(x,y,n+1)
 %
