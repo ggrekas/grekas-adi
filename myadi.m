@@ -84,8 +84,22 @@ end
 
 u= x_sweep(u, y_sub_diagonal_x_sweep, diag_y_xSweep, y_hyp_diagonal_x_sweep,...
    x_sub_diagonal_x_sweep, diag_x_xSweep, x_hyp_diagonal_x_sweep, f, rhs);
-u= x_sweep(u.', -x_sub_diagonal_x_sweep.', diag_x_ySweep.', -x_hyp_diagonal_x_sweep.',...
-   -y_sub_diagonal_x_sweep.', diag_y_ySweep.', -y_hyp_diagonal_x_sweep.', f.', rhs).';
+
+
+u = myTranspose(u);
+x_sub_diagonal_x_sweep = my_minusTranspose(x_sub_diagonal_x_sweep);
+diag_x_ySweep = myTranspose(diag_x_ySweep); 
+x_hyp_diagonal_x_sweep = my_minusTranspose(x_hyp_diagonal_x_sweep);
+y_sub_diagonal_x_sweep = my_minusTranspose(y_sub_diagonal_x_sweep);
+diag_y_ySweep = myTranspose(diag_y_ySweep);
+y_hyp_diagonal_x_sweep = my_minusTranspose(y_hyp_diagonal_x_sweep);
+f = myTranspose(f);
+rhs = myTranspose(rhs);
+
+u= x_sweep(u, x_sub_diagonal_x_sweep, diag_x_ySweep, x_hyp_diagonal_x_sweep,...
+   y_sub_diagonal_x_sweep, diag_y_ySweep, y_hyp_diagonal_x_sweep, f, rhs);
+
+u = myTranspose(u);
 
 return;
 
