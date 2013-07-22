@@ -2,6 +2,7 @@
 #include<mex.h>
 #include<stdlib.h>
 #include "matrix.h"
+#include<omp.h>
 
 
 void solveMatrix (int n, const double *a, double *b, const double *c,
@@ -43,11 +44,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
    {
       tid = omp_get_thread_num();
       #pragma omp for schedule(guided) nowait
-              for(i =0; i <N; ++i){
-         init_param( d[tid], diag+i*N, N);
-         init_param( rhs[tid], V+i*N, N);
-         solveMatrix(N, sub_diag+i*N*ismatrix, d[tid], hyp_diag+i*N*ismatrix, rhs[tid], U +i*N);
-              }
+		for(i =0; i <N; ++i){
+			init_param( d[tid], diag+i*N, N);
+			init_param( rhs[tid], V+i*N, N);
+			solveMatrix(N, sub_diag+i*N*ismatrix, d[tid], hyp_diag+i*N*ismatrix, rhs[tid], U +i*N);
+		}
    }
     par_mat_free(d, rhs, nthreads);
   
