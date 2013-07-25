@@ -2,6 +2,7 @@
 #include<mex.h>
 #include<stdlib.h>
 #include "matrix.h"
+#include<omp.h>
 
 void boundaryStart_scalar_diffusion(const double *u, const double *d, const double *f,
         double  b, int N, int j, double *rhs);
@@ -42,6 +43,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
             if( N ==mxGetM(prhs[3]) ){
                 boundaryStart_scalar_diffusion(u, diag, f, *sub_diag, N, 0, rhs);
                 boundaryEnd_scalar_diffusion(u, diag, f, *sub_diag, N, N-1, rhs);
+
+				#pragma omp parallel shared(u, diag, f, sub_diag, N, rhs)\
+					private(i)
+				#pragma omp for schedule(guided) nowait
                 for(i =1; i <N-1; ++i)
                     rhs_calc_scalar_diffusion(u, diag, f, *sub_diag, N, i, rhs);
             }
@@ -56,8 +61,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
          else{ /*case of a:[NxN] and C:[NxN].....*/
             boundaryStart(u, sub_diag,diag, hyp_diag, f, N, 0, rhs);
             boundaryEnd(u, sub_diag, diag, hyp_diag, f, N, N-1, rhs);
-            for(i =1; i <N-1; ++i)
-                rhs_calc(u, sub_diag, diag, hyp_diag, f, N, i, rhs);     
+			#pragma omp parallel shared(u, sub_diag, diag, hyp_diag, f, N, rhs)\
+					private(i)
+				#pragma omp for schedule(guided) nowait
+				for(i =1; i <N-1; ++i)
+					rhs_calc(u, sub_diag, diag, hyp_diag, f, N, i, rhs);     
          }
     return;   
 }
