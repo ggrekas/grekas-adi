@@ -15,13 +15,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	*/	
 	N = (int)mxGetScalar(prhs[3]);
 	
-	printf("N = %d\n", N);
 	plhs[0] = mxCreateDoubleMatrix(N, N, mxREAL);
 	plhs[1] = mxCreateDoubleMatrix(N, N, mxREAL);
 	plhs[2] = plhs[3] = plhs[4] = plhs[5] = NULL;
 	diag_y_xSweep = mxGetPr(plhs[0]);
 	diag_x_xSweep = mxGetPr(plhs[1]);
-	
 	
 	
 	diags_calculation(plhs, prhs, diag_y_xSweep, diag_x_xSweep, N);
@@ -94,16 +92,21 @@ void hyp_sub_diag_aMatrix(mxArray *plhs[], const double* a, const int N)
 		
 	a_x = derivative_x(a, N);	
 	a_y = derivative_y(a, N);
-	N2 = (N-1)*(N-1);
+	N2 = 0.5*(N-1)*(N-1);
+	
+	#pragma omp parallel shared(a_y, a_x, a, N2, y_hypDiag_xSweep, y_subDiag_xSweep,\
+	x_hypDiag_xSweep, x_subDiag_xSweep)\
+	private(i, j, k)
+	#pragma omp for schedule(guided) nowait
 	for(j = 0; j < N; ++j)
 		for(i = 0; i < N; ++i)
 		{
 			k = i +j*N;
-			y_hypDiag_xSweep[k] = 0.5*N2*( a[k] + 0.25*a_y[k] );
-			y_subDiag_xSweep[k] = 0.5*N2*( a[k] - 0.25*a_y[k] );
+			y_hypDiag_xSweep[k] = N2*( a[k] + 0.25*a_y[k] );
+			y_subDiag_xSweep[k] = N2*( a[k] - 0.25*a_y[k] );
 		
-			x_hypDiag_xSweep[k] = -0.5*N2*( a[k] + 0.25*a_x[k] );
-			x_subDiag_xSweep[k] = -0.5*N2*( a[k] - 0.25*a_x[k] );
+			x_hypDiag_xSweep[k] = -N2*( a[k] + 0.25*a_x[k] );
+			x_subDiag_xSweep[k] = -N2*( a[k] - 0.25*a_x[k] );
 		}
 
 	free(a_x);
@@ -116,6 +119,10 @@ double *derivative_x(const double *a, const N){
 	double *a_x;
 	
 	a_x = (double *)malloc(N*N*sizeof(double) );
+	
+	#pragma omp parallel shared(a_x, a, N)\
+	private(i, j)
+	#pragma omp for schedule(guided) nowait
 	for(j = 0; j < N; ++j){
 		a_x[j*N] =0;		
 		for(i = 1; i < N-1; ++i)
@@ -131,11 +138,18 @@ double *derivative_y(const double *a, const N){
 	double *a_y;
 	
 	a_y = (double *)malloc(N*N*sizeof(double) );
+	
+	#pragma omp parallel shared(a_y, a, N)\
+	private(i, j)
+	#pragma omp for schedule(guided) nowait
 	for(j = 1; j < N-1; ++j){
 		for(i = 0; i < N; ++i)
 			a_y[i+j*N] = a[i+(j+1)*N] - a[i+(j-1)*N];
 	}
-		
+	
+	#pragma omp parallel shared(a_y, N)\
+	private(i, j)
+	#pragma omp for schedule(guided,10) nowait
 	for(j =0; j < N; j+=N)
 		for(i = 0; i < N; ++i)
 			a_y[i+j*N] = 0;
@@ -231,7 +245,6 @@ void d_calc_aMatrix_cMatrix(double *a, double *C, double k_t, double *diag_y_xSw
 	int i, j, k;
 	double N2;
 	
-	printf("k_t = %lf, N =%d\n", k_t, N);
 	N2 = (N-1)*(N-1);
 	#pragma omp parallel shared(diag_y_xSweep, diag_x_xSweep, k_t, C, a, N2, N)\
 		private(i, j, k)

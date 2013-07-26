@@ -7,14 +7,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 
 	N = (int)mxGetScalar(prhs[3]);
 	
-	printf("N = %d\n", N);
+	
 	plhs[0] = mxCreateDoubleMatrix(N, N, mxREAL);
 	plhs[1] = mxCreateDoubleMatrix(N, N, mxREAL);
 	plhs[2] = plhs[3] = plhs[4] = plhs[5] = NULL;
 	diag_y_xSweep = mxGetPr(plhs[0]);
 	diag_x_xSweep = mxGetPr(plhs[1]);
-	
-	
 	
 	diags_calculation(plhs, prhs, diag_y_xSweep, diag_x_xSweep, N);
 
@@ -217,7 +215,6 @@ void d_calc_aMatrix_cMatrix(double *a, double *C, double k_t, double *diag_y_xSw
 	int i, j, k;
 	double N2;
 	
-	printf("k_t = %lf, N =%d\n", k_t, N);
 	N2 = (N-1)*(N-1);
 	for(j = 0; j <N; ++j)
 		for(i = 0; i <N; ++i){
