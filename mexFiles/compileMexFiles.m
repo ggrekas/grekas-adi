@@ -3,6 +3,7 @@ mex serial/TDMAsolver.c
 mex serial/my_minusTranspose.c
 mex serial/myTranspose.c
 mex serial/diags_calc.c
+
 if isunix
 	mex paraller/calculate_rhs_par.c CFLAGS="\$CFLAGS -fopenmp" LDFLAGS="\$LDFLAGS -fopenmp"
 	mex paraller/TDMAsolver_par.c CFLAGS="\$CFLAGS -fopenmp" LDFLAGS="\$LDFLAGS -fopenmp"
