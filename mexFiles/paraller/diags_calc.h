@@ -25,8 +25,7 @@ void hyp_sub_Matrix_mem_alloc(mxArray *plhs[], double **y_hypDiag_xSweep, double
 		y_subDiag_xSweep, double** x_hypDiag_xSweep, double** x_subDiag_xSweep, 
 		const int N);
 
-double *derivative_x(const double *a, const N);
-double *derivative_y(const double *a, const N);
+
 
 /* main diagonals calculation*/
 void d_calc_aMatrix_cScalar(double *a, double *C, double k_t, double *diag_y_xSweep,
@@ -39,5 +38,36 @@ void d_calc_aScalar_cScalar(double *a, double *C, double k_t, double *diag_y_xSw
 		double *diag_x_xSweep, int N);
 		
 		
+/* if arguments == 8*/
+void diags_update(mxArray *plhs[], const mxArray *prhs[], int N);
+void diags_additions(const mxArray *prhs[], double *d_x_add, double *d_y_add, 
+		double* d_subhyp_x_add, double* d_subhyp_y_add, const int N);
+void update_all_diags(const mxArray *plhs[], const double* d_x_add, const 
+	double* d_y_add, const int N);
+void update_all_hypsub_diags(const mxArray *plhs[], const double *d_subhyp_x_add,
+	const double *d_subhyp_y_add, const int N);
+		
+void diags_additions_xy(double *d_x_add, double *d_subhyp_x_add,
+	double *d_y_add, double *d_subhyp_y_add, double *Cg, double* g, double* Cphi,
+	double* phi, const int N, const mxArray *prhs[]);
+void init_var(const mxArray *prhs[], double **Cg, double **g, double **Cphi,
+	double **phi);
+	
+void restore_diags(const mxArray *plhs[], double **diag_x_x, double ** diag_y_x,
+	double** diag_x_y, double** diag_y_y);
+	void restore_subhyp_diags(const *plhs[], double **y_hyp_x, double **y_sub_x,
+	double **x_hyp_x, double **x_sub_x);
+void mem_alloc(double **d_x_add, double **d_y_add, double** d_subhyp_x_add,
+ double** d_subhyp_y_add, const int N);
+void mem_free(double *d_x_add, double *d_y_add, double* d_subhyp_x_add,
+	double* d_subhyp_y_add);
+		
+		
+/* first and second order derivatives*/
+double *derivative_x(const double *a, const N);
+double *derivative_xx(const double *a, const N);
+double *derivative_y(const double *a, const N);
+double *derivative_yy(const double *a, const N);
+
 		
 #endif
