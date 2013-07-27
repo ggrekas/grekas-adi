@@ -1,8 +1,6 @@
 #include"diags_calc.h"
 
 
-
-
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	double *diag_y_xSweep, *diag_x_xSweep;
 	int N;
@@ -17,15 +15,223 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	
 	plhs[0] = mxCreateDoubleMatrix(N, N, mxREAL);
 	plhs[1] = mxCreateDoubleMatrix(N, N, mxREAL);
-	plhs[2] = plhs[3] = plhs[4] = plhs[5] = NULL;
+
 	diag_y_xSweep = mxGetPr(plhs[0]);
 	diag_x_xSweep = mxGetPr(plhs[1]);
 	
 	
 	diags_calculation(plhs, prhs, diag_y_xSweep, diag_x_xSweep, N);
+	if(8 == nrhs){ 
+		plhs[2] = mxCreateDoubleMatrix(N, N, mxREAL);
+		plhs[3] = mxCreateDoubleMatrix(N, N, mxREAL);
 
+		diags_update(plhs, prhs, N); 
+	}
+	else
+	{
+		plhs[3] = plhs[0];
+		plhs[2] = plhs[1];
+	}
 	return;
 }
+
+
+void diags_update(mxArray *plhs[], const mxArray *prhs[], int N)
+{
+	double *d_x_add, *d_y_add, *d_subhyp_x_add, *d_subhyp_y_add;
+	double *Cg, *g, *Cphi, *phi;
+	
+	mem_alloc(&d_x_add, &d_y_add, &d_subhyp_x_add, &d_subhyp_y_add, N);
+	init_var(prhs, &Cg, &g, &Cphi, &phi);
+	diags_additions(d_x_add, d_subhyp_x_add, d_y_add, d_subhyp_y_add, Cg, g,
+		Cphi, phi, N, prhs);		
+	update_all_diags(plhs, d_x_add, d_y_add, N);
+	update_all_hypsub_diags(plhs, d_subhyp_x_add, d_subhyp_y_add, N);
+
+	mem_free(d_x_add, d_y_add, d_subhyp_x_add, d_subhyp_y_add);
+	
+	return;
+}
+
+void update_all_diags(const mxArray *plhs[], const double* d_x_add, const 
+	double* d_y_add, const int N)
+{
+	int i, j, k;
+	double *diag_x_x, *diag_y_x, *diag_x_y, *diag_y_y; 
+	
+	restore_diags( plhs, &diag_x_x, &diag_y_x, &diag_x_y, &diag_y_y);
+	for(j = 0; j < N; ++j)
+		for(i = 0; i < N; ++i){
+			k = i + j*N;
+			diag_y_x[k] += 0.5 * d_y_add[k];
+			diag_y_y[k] -= 0.5 * d_y_add[k];
+		
+			diag_x_x[k] -= 0.5 * d_x_add[k];
+			diag_y_x[k] += 0.5 * d_x_add[k];
+		}
+	return;
+}
+
+void restore_diags(const mxArray *plhs[], double **diag_x_x, double ** diag_y_x,
+	double** diag_x_y, double** diag_y_y)
+{
+	*diag_y_x = mxGetPr(plhs[0]);
+	*diag_x_x = mxGetPr(plhs[1]);
+	*diag_y_y = mxGetPr(plhs[2]);
+	*diag_x_y = mxGetPr(plhs[3]);
+		
+	return;
+}
+
+void update_all_hypsub_diags(const mxArray *plhs[], const double *d_subhyp_x_add,
+	const double *d_subhyp_y_add, const int N)
+{
+	int i, j, N2, k;
+	double *y_sub_x, *y_hyp_x, *x_sub_x, *x_hyp_x;
+	
+	N2 = (N-1)*(N-1);
+	restore_subhyp_diags( plhs, &y_hyp_x, &y_sub_x, &x_hyp_x, &x_sub_x); 
+	for(j = 0; j < N; ++j)
+		for(i = 0; i < N; ++i){
+			k = i + j*N;
+			y_hyp_x[k] += 0.125 * N2 * d_subhyp_y_add[k];
+			y_sub_x[k] -= 0.125 * N2 * d_subhyp_y_add[k];
+		
+			x_hyp_x[k] -= 0.125 * N2 * d_subhyp_x_add[k];
+			x_sub_x[k] += 0.125 * N2 * d_subhyp_x_add[k];
+		}
+	return;
+	
+}
+
+void restore_subhyp_diags(const *plhs[], double **y_hyp_x, double **y_sub_x,
+	double **x_hyp_x, double **x_sub_x)
+{
+	*y_hyp_x = mxGetPr(plhs[4]);
+	*y_sub_x = mxGetPr(plhs[5]);
+	*x_hyp_x = mxGetPr(plhs[6]);
+	*x_sub_x = mxGetPr(plhs[7]);
+
+	return;
+} 
+
+
+void diags_additions(double *d_x_add, double *d_subhyp_x_add, double *d_y_add, 
+	double *d_subhyp_y_add, double *Cg, double* g, double* Cphi,
+	double* phi, const int N, const mxArray *prhs[])
+{
+	int i, j, k;
+	double *g_x, *g_xx, *phi_x, *phi_xx, *g_y, *g_yy, *phi_y, *phi_yy;
+	
+	g_x = derivative_x(g, N);
+	g_xx = derivative_xx(g, N);
+	phi_x = derivative_x(phi, N);
+	phi_xx = derivative_xx(phi, N);
+	g_y = derivative_y(g, N);
+	g_yy = derivative_yy(g, N);
+	phi_y = derivative_y(phi, N);
+	phi_yy = derivative_yy(phi, N);
+	
+	if(1 == mxGetM(prhs[4]) ){
+	
+		for(j = 0; j < N; ++j)
+			for(i = 0; i < N; ++i){
+				k = i + j*N;
+				d_subhyp_x_add[k] = *Cg *g_x[k];
+				d_x_add[k] = *Cg *g_xx[k];
+				d_subhyp_y_add[k] = *Cg *g_y[k];
+				d_y_add[k] = *Cg *g_yy[k];
+			}
+	}
+	else
+	{
+		for(j = 0; j < N; ++j)
+			for(i = 0; i < N; ++i){
+				k = i + j*N;
+				d_subhyp_x_add[k] = Cg[k] *g_x[k];
+				d_x_add[k] = Cg[k] *g_xx[k];
+				d_subhyp_y_add[k] = Cg[k] *g_y[k];
+				d_y_add[k] = Cg[k] *g_yy[k];
+			}
+	
+	
+	}
+	if(1 == mxGetM(prhs[6]) ){
+	
+		for(j = 0; j < N; ++j)
+			for(i = 0; i < N; ++i){
+				k = i + j*N;
+				d_subhyp_x_add[k] += *Cphi *phi_x[k];
+				d_x_add[k] += *Cphi *phi_xx[k];
+				d_subhyp_y_add[k] += *Cphi *phi_y[k];
+				d_y_add[k] += *Cphi *phi_yy[k];
+			}
+	}
+	else
+	{
+		for(j = 0; j < N; ++j)
+			for(i = 0; i < N; ++i){
+				k = i + j*N;
+				d_subhyp_x_add[k] += Cphi[k] *phi_x[k];
+				d_x_add[k] += Cphi[k] *phi_xx[k];
+				d_subhyp_y_add[k] += Cphi[k] *phi_y[k];
+				d_y_add[k] += Cphi[k] *phi_yy[k];
+			}
+	
+	
+	}
+	
+	
+	
+	free(g_x);
+	free(g_xx);
+	free(phi_x);
+	free(phi_xx);
+	free(g_y);
+	free(g_yy);
+	free(phi_y);
+	free(phi_yy);
+
+	return;
+}	
+
+
+
+void init_var(const mxArray *prhs[], double **Cg, double **g, double **Cphi,
+	double **phi)
+{
+	*Cg = mxGetPr(prhs[4]);
+	*g = mxGetPr(prhs[5]);
+	*Cphi = mxGetPr(prhs[6]);
+	*phi = mxGetPr(prhs[7]);
+	
+	return;
+}
+
+
+void mem_alloc(double **d_x_add, double **d_y_add, double** d_subhyp_x_add,
+ double** d_subhyp_y_add, const int N){
+	
+	*d_x_add = (double *)malloc(N*N*sizeof(double));
+	*d_y_add = (double *)malloc(N*N*sizeof(double));
+	*d_subhyp_y_add = (double *)malloc(N*N*sizeof(double));
+	*d_subhyp_x_add = (double *)malloc(N*N*sizeof(double));
+ 
+	return;
+}
+
+
+void mem_free(double *d_x_add, double *d_y_add, double* d_subhyp_x_add,
+	double* d_subhyp_y_add)
+{
+	free(d_x_add);
+	free(d_y_add);
+	free(d_subhyp_y_add);
+	free(d_subhyp_x_add);
+	
+	return; 
+}
+
 
 void diags_calculation(mxArray *plhs[], const mxArray *prhs[], double *diag_y_xSweep,
 	double *diag_x_xSweep, const int N)
@@ -67,15 +273,15 @@ void hyp_sub_diag_aScalar(mxArray *plhs[], const double* a, const int N)
 void hyp_sub_scalar_mem_alloc(mxArray *plhs[], double **y_hypDiag_xSweep, double**
 		y_subDiag_xSweep, double** x_hypDiag_xSweep, double** x_subDiag_xSweep)
 {
-	plhs[2] = mxCreateDoubleMatrix(1, 1, mxREAL);
-	plhs[3] = mxCreateDoubleMatrix(1, 1, mxREAL);
 	plhs[4] = mxCreateDoubleMatrix(1, 1, mxREAL);
 	plhs[5] = mxCreateDoubleMatrix(1, 1, mxREAL);
+	plhs[6] = mxCreateDoubleMatrix(1, 1, mxREAL);
+	plhs[7] = mxCreateDoubleMatrix(1, 1, mxREAL);
 	
-	 *y_hypDiag_xSweep = mxGetPr(plhs[2]);
-	 *y_subDiag_xSweep = mxGetPr(plhs[3]);
-	 *x_hypDiag_xSweep = mxGetPr(plhs[4]);
-	 *x_subDiag_xSweep = mxGetPr(plhs[5]);	
+	 *y_hypDiag_xSweep = mxGetPr(plhs[4]);
+	 *y_subDiag_xSweep = mxGetPr(plhs[5]);
+	 *x_hypDiag_xSweep = mxGetPr(plhs[6]);
+	 *x_subDiag_xSweep = mxGetPr(plhs[7]);	
 
 	return;
 }
@@ -114,62 +320,21 @@ void hyp_sub_diag_aMatrix(mxArray *plhs[], const double* a, const int N)
 	return;
 }
 
-double *derivative_x(const double *a, const N){
-	int i, j;
-	double *a_x;
-	
-	a_x = (double *)malloc(N*N*sizeof(double) );
-	
-	#pragma omp parallel shared(a_x, a, N)\
-	private(i, j)
-	#pragma omp for schedule(guided) nowait
-	for(j = 0; j < N; ++j){
-		a_x[j*N] =0;		
-		for(i = 1; i < N-1; ++i)
-			a_x[i+j*N] = a[(i+1) + j*N] - a[(i-1) + j*N];
-		a_x[N-1 + j*N] =0;	
-	}
-				
-	return a_x;
-}
 
-double *derivative_y(const double *a, const N){
-	int i, j;
-	double *a_y;
-	
-	a_y = (double *)malloc(N*N*sizeof(double) );
-	
-	#pragma omp parallel shared(a_y, a, N)\
-	private(i, j)
-	#pragma omp for schedule(guided) nowait
-	for(j = 1; j < N-1; ++j){
-		for(i = 0; i < N; ++i)
-			a_y[i+j*N] = a[i+(j+1)*N] - a[i+(j-1)*N];
-	}
-	
-	#pragma omp parallel shared(a_y, N)\
-	private(i, j)
-	#pragma omp for schedule(guided,10) nowait
-	for(j =0; j < N; j+=N)
-		for(i = 0; i < N; ++i)
-			a_y[i+j*N] = 0;
-		
-	return a_y;
-}
 
 void hyp_sub_Matrix_mem_alloc(mxArray *plhs[], double **y_hypDiag_xSweep, double**
 		y_subDiag_xSweep, double** x_hypDiag_xSweep, double** x_subDiag_xSweep,
 		const int N)
 {
-	plhs[2] = mxCreateDoubleMatrix(N, N, mxREAL);
-	plhs[3] = mxCreateDoubleMatrix(N, N, mxREAL);
 	plhs[4] = mxCreateDoubleMatrix(N, N, mxREAL);
 	plhs[5] = mxCreateDoubleMatrix(N, N, mxREAL);
+	plhs[6] = mxCreateDoubleMatrix(N, N, mxREAL);
+	plhs[7] = mxCreateDoubleMatrix(N, N, mxREAL);
 	
-	 *y_hypDiag_xSweep = mxGetPr(plhs[2]);
-	 *y_subDiag_xSweep = mxGetPr(plhs[3]);
-	 *x_hypDiag_xSweep = mxGetPr(plhs[4]);
-	 *x_subDiag_xSweep = mxGetPr(plhs[5]);	
+	 *y_hypDiag_xSweep = mxGetPr(plhs[4]);
+	 *y_subDiag_xSweep = mxGetPr(plhs[5]);
+	 *x_hypDiag_xSweep = mxGetPr(plhs[6]);
+	 *x_subDiag_xSweep = mxGetPr(plhs[7]);	
 
 	return;
 }
@@ -280,4 +445,106 @@ void d_calc_aScalar_cScalar(double *a, double *C, double k_t, double *diag_y_xSw
 			diag_x_xSweep[k] =  const_var2;
 		}
 	return;
+}
+
+
+
+
+double *derivative_x(const double *a, const N){
+	int i, j, k;
+	double *a_x;
+	
+	a_x = (double *)malloc(N*N*sizeof(double) );
+	
+	#pragma omp parallel shared(a_x, a, N)\
+	private(i, j, k)
+	#pragma omp for schedule(guided) nowait
+	for(j = 0; j < N; ++j){
+		a_x[j*N] =0;		
+		for(i = 1; i < N-1; ++i){
+			k = i+j*N;
+			a_x[k] = a[k+1] - a[k-1];
+		}
+		a_x[N-1 + j*N] =0;	
+	}
+				
+	return a_x;
+}
+
+
+double *derivative_xx(const double *a, const N){
+	int i, j, k;
+	double *a_xx;
+	
+	a_xx = (double *)malloc(N*N*sizeof(double) );
+	
+	#pragma omp parallel shared(a_xx, a, N)\
+	private(i, j, k)
+	#pragma omp for schedule(guided) nowait
+	for(j = 0; j < N; ++j){
+		a_xx[j*N] =2*(a_xx[1 + j*N] - a_xx[j*N]);		
+		for(i = 1; i < N-1; ++i){
+			k = i+j*N;
+			a_xx[k] = a[k+1] + a[k-1] - 2*a[k];		
+		}
+		a_xx[N-1 + j*N] =2*(a[N-2 + j*N] - a[N-1 + j*N]);	
+	}
+				
+	return a_xx;
+}
+
+double *derivative_y(const double *a, const N){
+	int i, j, k;
+	double *a_y;
+	
+	a_y = (double *)malloc(N*N*sizeof(double) );
+	
+	#pragma omp parallel shared(a_y, a, N)\
+	private(i, j, k)
+	#pragma omp for schedule(guided) nowait
+	for(j = 1; j < N-1; ++j){
+		for(i = 0; i < N; ++i){
+			k = i+j*N;
+			a_y[k] = a[k + N] - a[k-N];
+		}
+	}
+	
+	#pragma omp parallel shared(a_y, N)\
+	private(i, j)
+	#pragma omp for schedule(guided,10) nowait
+	for(j =0; j < N; j+=N-1)
+		for(i = 0; i < N; ++i)
+			a_y[i+j*N] = 0;
+		
+	return a_y;
+}
+
+
+double *derivative_yy(const double *a, const N){
+	int i, j, k;
+	double *a_yy;
+	
+	a_yy = (double *)malloc(N*N*sizeof(double) );
+	
+	#pragma omp parallel shared(a_yy, a, N)\
+	private(i, j, k)
+	#pragma omp for schedule(guided) nowait
+	for(j = 1; j < N-1; ++j){
+		for(i = 0; i < N; ++i){
+			k = i+j*N;
+			a_yy[k] = a[k+N] + a[k-N] -2*a[k];
+		}
+	}
+	
+	#pragma omp parallel shared(a_yy, N)\
+	private(i, j)
+	#pragma omp for schedule(guided,10) nowait
+	for(j =0; j < N; j+=N-1)
+		for(i = 0; i < N; ++i)
+			if(0 == j)
+				a_yy[i+j*N] = 2*(a[i+(j+1)*N] - a[i+j*N]);
+			else
+				a_yy[i+j*N] = 2*(a[i+(j-1)*N] - a[i+j*N]);
+	
+	return a_yy;
 }
