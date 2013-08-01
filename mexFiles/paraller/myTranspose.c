@@ -13,7 +13,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
    /*plhs[0] = mxCreateDoubleMatrix(dimy,dimx,mxREAL);*/
 	A = mxGetPr(prhs[0]);
 	N= mxGetM( prhs[0] );
-   
+	
+	if( 1 == N)
+       return;
   
 	#pragma omp parallel shared(N, A)\
            private(j, i, temp)
