@@ -9,7 +9,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
    
    plhs[0] = prhs[0];
    
-   //plhs[0] = mxCreateDoubleMatrix(dimy,dimx,mxREAL);
    A = mxGetPr(prhs[0]);
    N= mxGetM( prhs[0] );
 
