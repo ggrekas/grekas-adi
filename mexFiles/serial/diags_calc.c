@@ -5,17 +5,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	double *diag_y_xSweep, *diag_x_xSweep, *diag_y_ySweep, *diag_x_ySweep;
 	int N;
 
-	/*
-	if(mxGetM(prhs[0]) < mxGetM(prhs[1]) )
-		N= (int)mxGetM(prhs[1]);
-	else
-		N= (int)mxGetM(prhs[0]);
-	*/	
 	N = (int)mxGetScalar(prhs[3]);
-	
-	/*plhs[1] = plhs[2]; 
-	plhs[0] = plhs[3];*/
-	omp_set_num_threads(18);
 	
 	plhs[0] = mxCreateDoubleMatrix(N, N, mxREAL);
 	plhs[1] = mxCreateDoubleMatrix(N, N, mxREAL);
@@ -32,9 +22,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	diags_calculation(plhs, prhs, diag_y_xSweep, diag_x_xSweep, diag_y_ySweep,
 	 	diag_x_ySweep, N);
 	if(8 == nrhs){ 
-	/*	plhs[2] = mxCreateDoubleMatrix(N, N, mxREAL);
-		plhs[3] = mxCreateDoubleMatrix(N, N, mxREAL);
-*/
 		diags_update(plhs, prhs, N); 
 	}
 	
