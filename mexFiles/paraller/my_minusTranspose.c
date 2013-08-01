@@ -10,7 +10,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
    plhs[0] = prhs[0];
    A = mxGetPr(prhs[0]);
    N= mxGetM( prhs[0] ); 
-	
+
+   A[N*N-1] = -A[N*N-1];
+   if( 1 == N)
+       return;
+   
    #pragma omp parallel shared(N, A)\
 		private(j, i, temp)
 		#pragma omp for schedule(guided) nowait
@@ -22,6 +26,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 				A[i*N+ j] = -temp;
 			}
 		}
-   A[N*N-1] = -A[N*N-1];
+ 
    return;
    }
