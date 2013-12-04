@@ -27,12 +27,25 @@ function u= myadi(u, a, C, f, h_t,  Cg, g, Cphi, phi)
 
 
 N= size(u,1);
-h= 1/(N-1);
-h2=h*h;
-
 rhs= zeros( size(u) );%
 
 k_t= round( 1/h_t ) +1;
+if ( all(a(:) == 0) )
+    if(nargin > 5)
+        if( 0 == (all(Cg(:) == 0) || all(g(:) == 0) && all(Cphi(:) == 0 || all(phi(:) == 0))) )
+            error('chemotaxis are not supported when diffusion coefficients is zero')
+        end
+    end
+%     temp = 1- h_t*C/2;
+%     if ( all( abs(temp(:)) > 0.00001 ) )
+%          u = u + h_t*(C.*u +f);
+% %         u = 1./temp*(u.*(1+h_t*C/2) + h_t*f); 
+%     else
+%         u = u + h_t*(C.*u +f);
+%     end
+    u = u + h_t*(C.*u +f);
+    return;
+end
 
 
 f= 0.5*f;
