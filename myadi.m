@@ -4,7 +4,7 @@
 % u_t = \Nabla(a* \Nabla(u) )+ c*u + f 
 %          or
 % u_t = \Nabla(a* \Nabla(u) )+ Cg*\Nabla[u \Nabla(g)] + 
-%     +   Cphi*\Nabla[u \Nabla(phi)]c*u + f 
+%     +   Cphi*\Nabla[u \Nabla(phi)] + c*u + f 
 % function myadi(u, a, c, f, h_t, Cg, g, Cphi, phi)
 %
 %
