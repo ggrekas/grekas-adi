@@ -31,11 +31,11 @@ rhs= zeros( size(u) );%
 
 k_t= round( 1/h_t ) +1;
 if ( all(a(:) == 0) )
-    if(nargin > 5)
-        if( 0 == (all(Cg(:) == 0) || all(g(:) == 0) && all(Cphi(:) == 0 || all(phi(:) == 0))) )
-            error('chemotaxis are not supported when diffusion coefficients is zero')
-        end
-    end
+%     if(nargin > 5)
+% %         if( 0 == (all(Cg(:) == 0) || all(g(:) == 0) && all(Cphi(:) == 0 || all(phi(:) == 0))) )
+% %             error('chemotaxis are not supported when diffusion coefficients is zero')
+% %         end
+%     end
     u = u + h_t*(C.*u +f);
     return;
 end
