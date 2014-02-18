@@ -27,13 +27,14 @@ u_y(x,0,t)=u_y(x,1,t)=0&
 
 
 \section{ADI Method implementation.}
- Alternating Ditection Implicit method is a computationally efficient scheme, that satisfies the
-  following properties:
+ Alternating Direction Implicit method is a computationally efficient scheme,
+ that satisfies the following properties:
   \begin{itemize}
-    \item has accurancy $O(k^2 + h^2)$, $k$ is the time step and $h$ the spatial step;
+    \item has accuracy $O(k^2 + h^2)$, $k$ is the time step and $h$ the spatial
+    step;
     \item is unconditionally stable;
     \item number of operations per time step is proportional to the number of unknowns, $O(M)$
-     where $M$ is the number of unknowns.       
+     where $ M$ is the number of unknowns.       
   \end{itemize}
 
 \subsection{Douglas-Peaceman-Rachford method}
@@ -51,8 +52,157 @@ $A_{1h}$ and $A_{2h}$, the proposed Douglas-Peaseman-Rachford method is:
 (I+\frac{k}{2}A_{2h})u^{n+1} = (I-\frac{k}{2}A_{1h})u^* + \frac{k}{2}f^{n+1/2}, \quad \text{(y-sweep)}
 \end{eqnarray} \label{equ:y-sweep}
 
+Equation (\ref{equ:x-sweep}) results in the following linear system:
+\begin{eqnarray}
+  A_l u_{;,l} = B_l
+  \label{equ:xsweep_lin}
+\end{eqnarray}
+
+
+
+with
  
-\subsection{Another subtitle}
+\[ A_l = \left( \begin{array}{cccccc}
+D_{1,l} & H_{1,l} & 0 & . & . & 0\\
+S_{1,l} & D_{2,l} & H_{2,l} & 0 & . & 0 \\
+. & . & . & . & .& . \\
+0 & . & 0 & S_{N-3,l} & D_{N-2,l} & H_{N-2,l}\\
+0 & . & . & 0 & S_{N-2,l} & D_{N-1,l}\\
+\end{array} \right)
+%
+u_{;,l} = \left( \begin{array}{c}
+  u_{1,l} \\
+  u_{2,l} \\
+  \vdots \\
+  u_{N-1,l}
+   \end{array}
+\right)
+\]
+
+
+where $D_{;,l}$, $H_{;,l}$ and $S_{;,l}$ are defined as follows respectively: 
+\[ D_{;,l} = \left( \begin{array}{c}
+  \frac{1}{k} + \frac{a_{1,l}}{h^2} - 0.25 C_{1,l} \\
+  \frac{1}{k} + \frac{a_{2,l}}{h^2} - 0.25 C_{2,l} \\
+  \vdots \\
+  \frac{1}{k} + \frac{a_{N,l}}{h^2} - 0.25 C_{N,l}
+  \end{array} \right),
+%
+ H_{;,l} = \frac{1}{2}\left( \begin{array}{c}
+  -2\frac{a_{1,l}}{h^2} \\
+  -\frac{a^x_{2,l}}{2h} - \frac{a_{2,l}}{h^2} \\
+  \vdots \\
+  -\frac{a^x_{N-1,l}}{2h} - \frac{a_{N-1,l}}{h^2}
+   \end{array}
+\right),  
+%
+S_{;,l} = \frac{1}{2} \left( \begin{array}{c}
+  \frac{a^x_{2,l}}{2h} - \frac{a_{2,l}}{h^2} \\
+  \vdots \\
+  \frac{a^x_{N-1,l}}{2h} - \frac{a_{N-1,l}}{h^2} \\
+  -2\frac{a_{N, l}}{h^2}
+  
+   \end{array}
+\right)\]
+
+For the right hand side of equation (\ref{equ:xsweep_lin}) we have:
+\begin{eqnarray}
+\bigl(B_{l} \bigr)_i &=& \bigl(G_{l} \bigr)_i + \frac{1}{2}f^{n+1/2}_{i,l}\\
+\bigl(G_{l} \bigr)_i &=&
+\frac{1}{2}\Bigl[
+\Bigl(-\frac{a^y_{i,l}}{2h} + \frac{a_{i,l}}{h^2}\Bigr) u^n_{i,l-1} +
+\Bigl(\frac{a^y_{i,l}}{2h} + \frac{a_{i,l}}{h^2} \Bigr) u^n_{i,l+1}
+\Bigr] + 
+\Bigl(\frac{1}{k} - \frac{ a_{i,l}}{h^2} + \frac{1}{4}C_{i,l}\Bigr) u^n_{i,l} \\
+ & &2 < l < L-1 \nonumber \\
+\bigl(G_{1} \bigr)_i &=& \frac{a_{i,1}}{h^2} u^n_{i,2} + 
+\Bigl(\frac{1}{k} - \frac{ a_{i,1}}{h^2} + \frac{1}{4}C_{i,1}\Bigr) u^n_{i,1} \\
+% %
+\bigl(G_{L} \bigr)_i &=&
+\frac{a_{i,L}}{h^2} u^n_{i,L-1} + 
+\Bigl(\frac{1}{k} - \frac{ a_{i,L}}{h^2} + \frac{1}{4}C_{i,L}\Bigr) u^n_{i,L}
+\end{eqnarray}
+
+
+\subsection{Chemotaxis addition.}
+Let $\Omega=(a_x, b_x)\times(a_y, b_y) \in \mathbb{R}^2$ with its boundary
+$\Gamma=\partial \Omega$ and $J=(0,T]$ be the time interval, $T>0$. The
+following Initial Boundary Value Problem (IBVP) is considered:
+\begin{eqnarray}
+u_t= \nabla\cdot(a\nabla u) + c_g\nabla\cdot(u \nabla g) +  \nonumber \\
+a_h\nabla\cdot(u \nabla h) +c(t, x, y) u + f&, \quad t\in J, &\quad 
+(x,y)\in \Omega \label{eq:heatChem}\\ 
+u(0,x,y) = u_0(x,y) \nonumber \\ 
+u_x=u_y= 0,&  &\quad (x,y) \in \Gamma \nonumber \\ 
+g_x=g_y= 0, & &\quad (x,y) \in\Gamma \nonumber \\ 
+h_x=h_y= 0, & &\quad (x,y) \in\Gamma \nonumber
+\end{eqnarray}
+Defining the operatos:
+\begin{eqnarray}
+A_1u = -(au_x)_x  - c_g(u g_x)_x - c_h(u h_x)_x  - \frac{1}{2}cu, \nonumber \\
+A_2u = -(au_y)_y  - c_g(u g_y)_y - c_h(u h_y)_y  - \frac{1}{2}cu, \nonumber \\
+\end{eqnarray}
+x-sweep linear system's elements are altered as follows:
+\[ D_{;,l} = \left( \begin{array}{c}
+  \frac{1}{k} + \frac{a_{1,l}}{h^2} - 0.25 C_{1,l} - (c_{bx})_{1,l} \\
+  \frac{1}{k} + \frac{a_{2,l}}{h^2} - 0.25 C_{2,l} - (c_{bx})_{2,l}\\
+  \vdots \\
+  \frac{1}{k} + \frac{a_{N,l}}{h^2} - 0.25 C_{N,l} - (c_{bx})_{N,l}
+  \end{array} \right),
+\]
+%
+\[
+ H_{;,l} = \frac{1}{2}\left( \begin{array}{c}
+  -2\frac{a_{1,l}}{h^2} \\
+  -\frac{a^x_{2,l} + (c_{ax})_{2,l}}{2h} - \frac{a_{2,l}}{h^2} \\
+  \vdots \\
+  -\frac{a^x_{N-1,l} + (c_{ax})_{N-1,l}}{2h} - \frac{a_{N-1,l}}{h^2}
+   \end{array}
+\right),  
+%
+S_{;,l} = \frac{1}{2} \left( \begin{array}{c}
+  \frac{a^x_{2,l} + (c_{ax})_{2,l}}{2h} - \frac{a_{2,l}}{h^2} \\
+  \vdots \\
+  \frac{a^x_{N-1,l} + (c_{ax})_{N-1,l}}{2h} - \frac{a_{N-1,l}}{h^2} \\
+  -2\frac{a_{N, l}}{h^2}
+  
+   \end{array}
+\right)\]
+where
+\begin{eqnarray}
+ (c_{ax})_{i,l} = (c_g)_{i,l} (g_x)_{i,l} + (c_h)_{i,l} (h_x)_{i,l}, \: 
+ (c_{bx})_{i,l} = (c_g)_{i,l} (g_{xx})_{i,l} + (c_h)_{i,l} (h_{xx})_{i,l} 
+\end{eqnarray}
+
+
+For the right hand side of equation (\ref{equ:xsweep_lin}) we have:
+\begin{eqnarray}
+\bigl(B_{l} \bigr)_i &=& \bigl(G_{l} \bigr)_i + \frac{1}{2}f^{n+1/2}_{i,l}\\
+\bigl(G_{l} \bigr)_i &=&
+\frac{1}{2}\Bigl[
+\Bigl(-\frac{a^y_{i,l} -(c_{ay})_{i,l}}{2h} + \frac{a_{i,l} + }{h^2}\Bigr)
+u^n_{i,l-1} +
+\Bigl(\frac{a^y_{i,l} + (c_{ay})_{i,l}}{2h} + \frac{a_{i,l}}{h^2} \Bigr)
+u^n_{i,l+1}
+\Bigr]\\
+ &+& \Bigl(\frac{1}{k} - \frac{ a_{i,l}}{h^2} + \frac{1}{4}C_{i,l} +
+ (c_{by})_{i,l} \Bigr) u^n_{i,l} \nonumber \\
+ & &2 < l < L-1 \nonumber \\
+\bigl(G_{1} \bigr)_i &=& \frac{a_{i,1}}{h^2} u^n_{i,2} + 
+\Bigl(\frac{1}{k} - \frac{ a_{i,1}}{h^2} + \frac{1}{4}C_{i,1} + (c_{by})_{i,l}
+\Bigr) u^n_{i,1} \\
+%
+\bigl(G_{L} \bigr)_i &=&
+\frac{a_{i,L}}{h^2} u^n_{i,L-1} + 
+\Bigl(\frac{1}{k} - \frac{ a_{i,L}}{h^2} + \frac{1}{4}C_{i,L}\Bigr) u^n_{i,L}
+\end{eqnarray}
+where
+\begin{eqnarray}
+ (c_{ay})_{i,l} = (c_g)_{i,l} (g_y)_{i,l} + (c_h)_{i,l} (h_y)_{i,l}, \: 
+ (c_{by})_{i,l} = (c_g)_{i,l} (g_{yy})_{i,l} + (c_h)_{i,l} (h_{yy})_{i,l} 
+\end{eqnarray}
+
+
 
 {\LaTeX}
 

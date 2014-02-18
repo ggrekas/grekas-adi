@@ -297,6 +297,8 @@ void mem_free(double *d_x_add, double *d_y_add, double* d_subhyp_x_add,
 }
 
 
+
+/* diagonal elements computation without chemotactic factors*/
 void diags_calculation(mxArray *plhs[], const mxArray *prhs[], double *diag_y_xSweep,	double *diag_x_xSweep, double *diag_y_ySweep,	double *diag_x_ySweep, const int N)
 	{
 	double *a, *C, k_t;
@@ -352,7 +354,7 @@ void hyp_sub_scalar_mem_alloc(mxArray *plhs[], double **y_hypDiag_xSweep, double
 void hyp_sub_diag_aMatrix(mxArray *plhs[], const double* a, const int N)
 {
 	int i, j, k=0;
-	double  N2;
+	double  CN2;
 	double *y_hypDiag_xSweep, *y_subDiag_xSweep, *x_hypDiag_xSweep, *x_subDiag_xSweep;
 	double *a_x, *a_y;
 	
@@ -361,17 +363,17 @@ void hyp_sub_diag_aMatrix(mxArray *plhs[], const double* a, const int N)
 		
 	a_x = derivative_x(a, N);	
 	a_y = derivative_y(a, N);
-	N2 = 0.5*(N-1)*(N-1);
+	CN2 = 0.5*(N-1)*(N-1);
 	
 	for(j = 0; j < N; ++j)
 		for(i = 0; i < N; ++i)
 		{
 			k = i +j*N;
-			y_hypDiag_xSweep[k] = N2*( a[k] + 0.25*a_y[k] );
-			y_subDiag_xSweep[k] = N2*( a[k] - 0.25*a_y[k] );
+			y_hypDiag_xSweep[k] = CN2*( a[k] + 0.25*a_y[k] );
+			y_subDiag_xSweep[k] = CN2*( a[k] - 0.25*a_y[k] );
 		
-			x_hypDiag_xSweep[k] = -N2*( a[k] + 0.25*a_x[k] );
-			x_subDiag_xSweep[k] = -N2*( a[k] - 0.25*a_x[k] );
+			x_hypDiag_xSweep[k] = -CN2*( a[k] + 0.25*a_x[k] );
+			x_subDiag_xSweep[k] = -CN2*( a[k] - 0.25*a_x[k] );
 		}
 
 	free(a_x);
