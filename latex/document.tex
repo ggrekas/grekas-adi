@@ -19,8 +19,8 @@ $J=(0,T]$ be the time interval, $T>0$. The following Initial Boundary Value Prob
 \begin{eqnarray}
 u_t= \nabla\cdot(a\nabla u) + c(t, x, y) u + f&, \quad t\in J, \quad (x,y)\in \Omega \label{eq:heat}\\
 u(x,y,0) = u_0(x,y)&\\
-u_x(0,y,t)=u_x(1,y,t)=0&\\
-u_y(x,0,t)=u_y(x,1,t)=0& 
+u_x(0,y,t)= g_1(y,t), \quad u_x(1,y,t)=g_2(y,t)&\\
+u_y(x,0,t)= h_1(x,t), \quad u_y(x,1,t)= h_2(x,t)& 
 \end{eqnarray}
 
 
@@ -51,6 +51,19 @@ $A_{1h}$ and $A_{2h}$, the proposed Douglas-Peaseman-Rachford method is:
 \label{equ:x-sweep}\\
 (I+\frac{k}{2}A_{2h})u^{n+1} = (I-\frac{k}{2}A_{1h})u^* + \frac{k}{2}f^{n+1/2}, \quad \text{(y-sweep)}
 \end{eqnarray} \label{equ:y-sweep}
+
+In more detail the left hand side of equation (\ref{equ:x-sweep}) is:
+\begin{align*}
+(I +\frac{k}{2}A_{1h})u^* &= u^* -\frac{k}{2}\Bigl( a_x u^*_x + a u^*_{xx} +
+\frac{1}{2} c u^*\Bigr) \nonumber \\
+&\simeq  u^*(x,y) -\frac{k}{2}\Bigl( \frac{a(x+h, y) - a(x-h,y)}{2h}
+\frac{u^*(x+h, y)- u^*(x-h,y)}{2h} \\
+& + a(x,y) \frac{u^*(x+h,y) - 2 u(x,y) + u^*(x-h,y) }{h^2}
++ \frac{1}{2} c(x,y) u^*(x,y)
+\Bigr)
+\end{align*}
+
+
 
 Equation (\ref{equ:x-sweep}) results in the following linear system:
 \begin{eqnarray}

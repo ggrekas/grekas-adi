@@ -21,7 +21,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	
 	diags_calculation(plhs, prhs, diag_y_xSweep, diag_x_xSweep, diag_y_ySweep,
 	 	diag_x_ySweep, N);
-	if(8 == nrhs){ 
+	if(10 == nrhs){ 
 		diags_update(plhs, prhs, N); 
 	}
 	
@@ -493,7 +493,7 @@ void d_calc_aScalar_cScalar(double *a, double *C, double k_t, double *diag_y_xSw
 	
 	for(j = 0; j <N; ++j)
 		for(i = 0; i <N; ++i){
-		k = i + j*N;
+			k = i + j*N;
 			diag_x_ySweep[k] = diag_y_xSweep[k] =  const_var1;		
 			diag_y_ySweep[k] = diag_x_xSweep[k] =  const_var2;
 		}
