@@ -23,9 +23,9 @@
 %
 % Author: Giorgos Grekas (grekas.g@gmail.com)
 
-function u= myadi(u, a, C, f, h_t,  Cg, g, Cphi, phi)
+function u= myadi(u, a, C, f, h_t, boundaries, fields_num, Cg, g, Cphi, phi)
 
-
+fields_num = int32(fields_num); %pass integer to mex files
 N= size(u,1);
 rhs= zeros( size(u) );%
 
@@ -44,10 +44,11 @@ end
 f= 0.5*f;
 % tic;
 
-if(nargin > 5)
-       [diag_y_xSweep, diag_x_xSweep, diag_y_ySweep, diag_x_ySweep,...
+if(nargin > 7)
+        [diag_y_xSweep, diag_x_xSweep, diag_y_ySweep, diag_x_ySweep,...
          y_hyp_diagonal_x_sweep, y_sub_diagonal_x_sweep, x_hyp_diagonal_x_sweep,...
-         x_sub_diagonal_x_sweep] = diags_calc(a, C, k_t, N, Cg, g, Cphi, phi);
+         x_sub_diagonal_x_sweep] = diags_calc(a, C, k_t, N, Cg, g, Cphi, phi,...
+        boundaries, fields_num);
 else
        [diag_y_xSweep, diag_x_xSweep, diag_y_ySweep, diag_x_ySweep,...
          y_hyp_diagonal_x_sweep, y_sub_diagonal_x_sweep, x_hyp_diagonal_x_sweep,...
@@ -58,7 +59,8 @@ end
         
 
 u= x_sweep(u, y_sub_diagonal_x_sweep, diag_y_xSweep, y_hyp_diagonal_x_sweep,...
-   x_sub_diagonal_x_sweep, diag_x_xSweep, x_hyp_diagonal_x_sweep, f, rhs);
+   x_sub_diagonal_x_sweep, diag_x_xSweep, x_hyp_diagonal_x_sweep, f, rhs,...
+   a, boundaries, fields_num);
 
 
 u = myTranspose(u);
@@ -71,22 +73,32 @@ y_hyp_diagonal_x_sweep = my_minusTranspose(y_hyp_diagonal_x_sweep);
 f = myTranspose(f);
 rhs = myTranspose(rhs);
 
+
+names = fieldnames(boundaries);
+shifted_boundaries =  shift_field_vals(boundaries, names{fields_num(1)},...
+    names{fields_num(2)}, N);
+a_new = (a +1) - 1;
+a_new = myTranspose(a_new);
 u= x_sweep(u, x_sub_diagonal_x_sweep, diag_x_ySweep, x_hyp_diagonal_x_sweep,...
-   y_sub_diagonal_x_sweep, diag_y_ySweep, y_hyp_diagonal_x_sweep, f, rhs);
+   y_sub_diagonal_x_sweep, diag_y_ySweep, y_hyp_diagonal_x_sweep, f, rhs,...
+   a_new, shifted_boundaries, fields_num);
 
 u = myTranspose(u);
-
 return;
 
 
 
 function u= x_sweep(u, y_sub_diag, diag1, y_hyp_diag, x_sub_diag, diag2,...
-   x_hyp_diag, f, rhs)
+   x_hyp_diag, f, rhs, a, boundaries, fields_num)
 N= size(u,1);
 
-rhs =calculate_rhs(rhs, u, y_sub_diag, diag1, y_hyp_diag, f);
+%  rhs2 = (rhs +1) - 1;
+%  rhs2 =calculate_rhs(rhs2, u, y_sub_diag, diag1, y_hyp_diag, f, a, boundaries,...
+%     fields_num);
+ rhs =calculate_rhs(rhs, u, y_sub_diag, diag1, y_hyp_diag, f, a, boundaries, fields_num);
 
-
+% figure(1), mesh( abs(rhs - rhs2) )
+% pause
 if ( isscalar(x_sub_diag) )
    sub_diag= zeros(N,1);
    sub_diag(1:N-1)= x_sub_diag;
@@ -106,3 +118,22 @@ else
 end
 
 return;
+
+function [s] = shift_field_vals(s, name1, name2, N)
+
+field_val = s.(name1);
+
+val1 = field_val(1:2*N);
+val2 = field_val(2*N+1:4*N);
+value = [val2, val1];
+
+s.(name1) = value;
+
+field_val = s.(name2);
+
+val1 = field_val(1:2*N);
+val2 = field_val(2*N+1:4*N);
+value = [val2, val1];
+
+s.(name2) = value;
+return 
