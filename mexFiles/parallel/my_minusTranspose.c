@@ -26,6 +26,5 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 				A[i*N+ j] = -temp;
 			}
 		}
- 
    return;
    }
