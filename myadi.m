@@ -75,8 +75,12 @@ rhs = myTranspose(rhs);
 
 
 names = fieldnames(boundaries);
-shifted_boundaries =  shift_field_vals(boundaries, names{fields_num(1)},...
-    names{fields_num(2)}, N);
+if( 1 == size(a,1) )
+    shifted_boundaries =  shift_field_vals(boundaries, names{fields_num(1)}, N);
+else
+    shifted_boundaries =  shift_field_vals(boundaries, names{fields_num(1)},...
+        N, names{fields_num(2)});
+end
 a_new = (a +1) - 1;
 a_new = myTranspose(a_new);
 u= x_sweep(u, x_sub_diagonal_x_sweep, diag_x_ySweep, x_hyp_diagonal_x_sweep,...
@@ -119,7 +123,7 @@ end
 
 return;
 
-function [s] = shift_field_vals(s, name1, name2, N)
+function [s] = shift_field_vals(s, name1, N, name2)
 
 field_val = s.(name1);
 
@@ -129,11 +133,12 @@ value = [val2, val1];
 
 s.(name1) = value;
 
-field_val = s.(name2);
+if(nargin == 4)
+    field_val = s.(name2);
+    val1 = field_val(1:2*N);
+    val2 = field_val(2*N+1:4*N);
+    value = [val2, val1];
+    s.(name2) = value;
+end
 
-val1 = field_val(1:2*N);
-val2 = field_val(2*N+1:4*N);
-value = [val2, val1];
-
-s.(name2) = value;
 return 
